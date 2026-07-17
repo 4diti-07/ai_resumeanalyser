@@ -1,0 +1,37 @@
+Software Engineering Intern
+
+Requirements:
+
+• Python
+
+• Git
+
+• SQL
+
+• REST APIs
+
+• Data Structures
+
+• Object Oriented Programming
+
+• Linux
+
+Preferred:
+
+• Machine Learning
+
+• TensorFlow
+
+• Docker
+
+Responsibilities:
+
+• Develop backend applications
+
+• Build APIs
+
+• Collaborate with software engineers
+
+• Debug applications
+
+• Write documentation
