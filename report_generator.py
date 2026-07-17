@@ -16,7 +16,7 @@ from reportlab.platypus import (
 from reportlab.lib.styles import getSampleStyleSheet
 
 
-def create_pdf_report(results):
+def generate_pdf_report(results):
     """
     Creates a PDF from workflow results.
 
