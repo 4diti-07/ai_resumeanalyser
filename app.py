@@ -30,7 +30,7 @@ st.set_page_config(
 st.title("📄 AI Resume Analyzer")
 
 st.markdown("""
-Upload your **Resume (PDF)** to receive:
+Upload your **Resume (PDF)** to receive the following insights:
 
 - ✅ ATS Analysis
 - ✅ Skills Assessment
@@ -94,7 +94,7 @@ if uploaded_file is not None:
     # Optional Job Description
     # -----------------------------------------
 
-    st.subheader("💼 Job Description (Optional)")
+    st.subheader("💼 Job Description")
 
     job_description = st.text_area(
         "Paste the Job Description here",
