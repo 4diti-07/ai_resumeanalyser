@@ -1,21 +1,12 @@
-"""
-app.py
-
-Main Streamlit application
-for the AI Resume Analyzer.
-"""
-
 import os
 import streamlit as st
 
 from extracter import extract_text_from_pdf
 from workflow import run_resume_workflow
-from report_generator import create_pdf_report
 from jd_matcher import analyze_job_match
+from report_generator import generate_pdf_report
 
-# -----------------------------------------
-# Streamlit Page Configuration
-# -----------------------------------------
+#config
 
 st.set_page_config(
     page_title="AI Resume Analyzer",
@@ -23,169 +14,214 @@ st.set_page_config(
     layout="wide"
 )
 
-# -----------------------------------------
-# Title
-# -----------------------------------------
+#handy sidebar
 
+with st.sidebar:
+
+    st.title("🤖 AI Resume Analyzer")
+
+    st.markdown("---")
+
+    st.markdown("### Features")
+
+    st.write("✅ ATS Resume Analysis")
+    st.write("✅ Skill Gap Detection")
+    st.write("✅ Project Recommendations")
+    st.write("✅ Career Guidance")
+    st.write("✅ Learning Roadmap")
+    st.write("✅ Job Description Matching")
+    st.write("✅ Download PDF Report")
+
+    st.markdown("---")
+
+    st.markdown("### Tech Stack")
+
+    st.caption("• Streamlit")
+    st.caption("• LangChain")
+    st.caption("• ChromaDB")
+    st.caption("• HuggingFace")
+    st.caption("• OpenRouter GPT-4.1 Mini")
+
+    st.markdown("---")
+
+    st.caption("Built by Aditi Sharma")
+
+#main title
 st.title("📄 AI Resume Analyzer")
 
-st.markdown("""
-Upload your **Resume (PDF)** to receive the following insights:
-
-- ✅ ATS Analysis
-- ✅ Skills Assessment
-- ✅ Recommended Projects
-- ✅ Career Suggestions
-- ✅ Learning Roadmap
-- ✅ AI Generated Final Report
-- ✅ Job Description Matching
-- ✅ Downloadable PDF Report
-""")
-
-# -----------------------------------------
-# Upload Resume
-# -----------------------------------------
-
-uploaded_file = st.file_uploader(
-    "Upload Resume (PDF)",
-    type=["pdf"]
+st.caption(
+    "Analyze resumes using AI-powered ATS evaluation, "
+    "RAG, LLMs, and personalized career recommendations."
 )
 
-# -----------------------------------------
-# Process Uploaded Resume
-# -----------------------------------------
+st.divider()
 
-if uploaded_file is not None:
+#the upload section
+
+left, right = st.columns(2)
+
+with left:
+
+    uploaded_resume = st.file_uploader(
+        "📄 Upload Resume (PDF)",
+        type=["pdf"]
+    )
+
+with right:
+
+    uploaded_jd = st.file_uploader(
+        "💼 Upload Job Description (Optional)",
+        type=["pdf", "txt"]
+    )
+
+st.divider()
+
+#to analyze the resume (button)
+
+analyze = st.button(
+    "🚀 Analyze Resume",
+    use_container_width=True
+)
+
+if analyze:
+
+    if uploaded_resume is None:
+
+        st.warning("Please upload a resume.")
+
+        st.stop()
 
     os.makedirs("uploads", exist_ok=True)
 
-    file_path = os.path.join(
+    resume_path = os.path.join(
         "uploads",
-        uploaded_file.name
+        uploaded_resume.name
     )
 
-    with open(file_path, "wb") as f:
-        f.write(uploaded_file.getbuffer())
+    with open(resume_path, "wb") as f:
+        f.write(uploaded_resume.getbuffer())
 
-    st.success("✅ Resume uploaded successfully!")
+    progress = st.progress(0)
 
-    # -----------------------------------------
-    # Extract Resume Text
-    # -----------------------------------------
+    with st.spinner("Extracting resume..."):
 
-    try:
-
-        resume_text = extract_text_from_pdf(file_path)
-
-        st.subheader("📄 Extracted Resume")
-
-        st.text_area(
-            "Resume Content",
-            resume_text,
-            height=300
+        resume_text = extract_text_from_pdf(
+            resume_path
         )
 
-    except Exception as e:
+    progress.progress(30)
 
-        st.error(f"Error extracting resume:\n{e}")
-        st.stop()
+    with st.expander("📄 Resume Preview"):
 
-    # -----------------------------------------
-    # Optional Job Description
-    # -----------------------------------------
+        st.text_area(
+            "",
+            resume_text,
+            height=250
+        )
 
-    st.subheader("💼 Job Description")
+    with st.spinner(
+        "Analyzing your resume... This may take a few moments."
+    ):
 
-    job_description = st.text_area(
-        "Paste the Job Description here",
-        height=200,
-        placeholder="Paste a job description to compare your resume..."
-    )
+        report = run_resume_workflow(
+            resume_text
+        )
 
-    # -----------------------------------------
-    # Analyze Button
-    # -----------------------------------------
+    progress.progress(80)
 
-    if st.button("🚀 Analyze Resume"):
+    st.success("✅ Resume analysis completed successfully!")
 
-        with st.spinner("Analyzing Resume..."):
+    st.divider()
 
-            try:
+    #ATS Analysis
 
-                results = run_resume_workflow(
-                    resume_text
-                )
+    with st.expander("🎯 ATS Analysis", expanded=True):
+        st.markdown(report["ats"])
 
-            except Exception as e:
+    # skills analysis
 
-                st.error(f"Workflow Error:\n{e}")
-                st.stop()
+    with st.expander("🛠 Skills Analysis"):
+        st.markdown(report["skills"])
 
-        st.success("✅ Analysis Complete!")
+    #ai recommended projects tailored to the resume
 
-        # -----------------------------------------
-        # Final Report
-        # -----------------------------------------
+    with st.expander("💡 Recommended Projects"):
+        st.markdown(report["projects"])
 
-        st.success("✅ Analysis Complete!")
+    # career guidance based on the resume
 
-        tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
-            "📊 ATS",
-            "🛠 Skills",
-            "🚀 Projects",
-            "💼 Career",
-            "📚 Roadmap",
-            "📋 Final Report"
-        ])
+    with st.expander("🚀 Career Guidance"):
+        st.markdown(report["career"])
 
-        with tab1:
-            st.markdown(results["ats"])
+    # a suggested 30-day learning roadmap based on the resume
 
-        with tab2:
-            st.markdown(results["skills"])
+    with st.expander("📚 Learning Roadmap"):
+        st.markdown(report["roadmap"])
 
-        with tab3:
-            st.markdown(results["projects"])
+    # the final report combining all the analyses into one professional report
 
-        with tab4:
-            st.markdown(results["career"])
+    with st.expander("📋 Complete AI Report"):
+        st.markdown(report["final_report"])
 
-        with tab5:
-            st.markdown(results["roadmap"])
+    progress.progress(90)
 
-        with tab6:
-            st.markdown(results["final_report"])
+    # job description matching if a job description is uploaded
+    if uploaded_jd is not None:
 
-        # -----------------------------------------
-        # PDF Download
-        # -----------------------------------------
+        st.divider()
 
-        pdf_path = create_pdf_report(results)
+        st.subheader("💼 Job Description Match")
 
-        with open(pdf_path, "rb") as pdf:
+        if uploaded_jd.name.endswith(".pdf"):
 
-            st.download_button(
-                label="📥 Download Analysis Report",
-                data=pdf,
-                file_name="Resume_Analysis_Report.pdf",
-                mime="application/pdf"
+            jd_path = os.path.join(
+                "uploads",
+                uploaded_jd.name
             )
 
-        # -----------------------------------------
-        # Job Description Matching
-        # -----------------------------------------
+            with open(jd_path, "wb") as f:
+                f.write(uploaded_jd.getbuffer())
 
-        if job_description.strip():
+            jd_text = extract_text_from_pdf(jd_path)
 
-            st.divider()
+        else:
 
-            st.header("🎯 Job Description Match")
+            jd_text = uploaded_jd.read().decode("utf-8")
 
-            with st.spinner("Comparing Resume with Job Description..."):
+        with st.spinner("Comparing resume with job description..."):
 
-                jd_report = analyze_job_match(
-                    resume_text,
-                    job_description
-                )
+            jd_report = analyze_job_match(
+                resume_text,
+                jd_text
+            )
 
-            st.markdown(jd_report)
+        st.markdown(jd_report)
+
+    progress.progress(100)
+    progress.empty()
+
+    # download the final report as a PDF
+
+    st.divider()
+
+    st.subheader("📥 Download Report")
+
+    pdf_path = generate_pdf_report(report)
+
+    with open(pdf_path, "rb") as pdf:
+
+        st.download_button(
+            label="📄 Download PDF Report",
+            data=pdf,
+            file_name="Resume_Analysis_Report.pdf",
+            mime="application/pdf",
+            use_container_width=True
+        )
+
+#final footer
+
+st.divider()
+
+st.caption(
+    "🤖 AI Resume Analyzer • Powered by Streamlit, LangChain, ChromaDB, OpenRouter & Hugging Face"
+)
