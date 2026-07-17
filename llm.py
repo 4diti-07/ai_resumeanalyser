@@ -5,15 +5,18 @@ Handles all communication with the LLM.
 """
 
 import os
+import streamlit as st
 from dotenv import load_dotenv
 from openai import OpenAI
 
-# Load environment variables
 load_dotenv()
 
 API_KEY = os.getenv("OPENROUTER_API_KEY")
-BASE_URL = "https://openrouter.ai/api/v1"
 
+if not API_KEY:
+    API_KEY = st.secrets.get("OPENROUTER_API_KEY")
+
+BASE_URL = "https://openrouter.ai/api/v1"
 MODEL = "openai/gpt-4.1-mini"
 
 client = OpenAI(
