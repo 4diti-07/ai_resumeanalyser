@@ -196,3 +196,5 @@ streamlit run app.py
 ```
 
 ---
+
+## Deployed: https://airesumeanalyser-w9vf3xbt3nnjlmaym8mfup.streamlit.app/
